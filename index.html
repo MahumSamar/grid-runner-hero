@@ -41,12 +41,10 @@
 
   .layer{position:absolute;inset:0;width:100%;height:100%;pointer-events:none}
   /* stack: background plate → shading → graffiti → transparent hero (front/back) → sparks → UI */
-  #bg{position:absolute;z-index:1;max-width:none;pointer-events:none;opacity:0;transition:opacity .9s ease}
+  #bg{position:absolute;z-index:1;inset:0;width:100%;height:100%;object-fit:cover;object-position:50% 50%;pointer-events:none;opacity:0;transition:opacity .9s ease}
   #front{z-index:4;opacity:0;transition:opacity .9s ease .15s}
   .ready #bg,.ready #front{opacity:1}
   #sparks{z-index:5;mix-blend-mode:screen}
-
-  .edge{position:absolute;z-index:2;left:0;right:0;display:none;pointer-events:none;background:linear-gradient(180deg,var(--bg) 0%,rgba(5,6,13,0) 100%)}
 
   /* legibility shading */
   .shade{z-index:2;background:
@@ -219,7 +217,6 @@
   <!-- 1. single background plate -->
   <img id="bg" alt="" decoding="async"
        src="https://d8j0ntlcm91z4.cloudfront.net/user_38xzZboKViGWJOttwIXH07lWA1P/hf_20260930_032112_83df5417-b938-40cb-ab08-277e681c0058.png">
-  <div class="edge" id="edge" aria-hidden="true"></div>
   <div class="layer shade" aria-hidden="true"></div>
 
   <!-- 2. graffiti, in code, sitting behind the hero -->
@@ -291,7 +288,6 @@
   const fctx   = front.getContext('2d');
   const sparks = document.getElementById('sparks');
   const sctx   = sparks.getContext('2d');
-  const edge   = document.getElementById('edge');
 
   // reveal mask lives on a half-res offscreen canvas (it's soft, so no visible loss)
   const mask = document.createElement('canvas');
@@ -337,7 +333,8 @@
     return c;
   })();
 
-  /* ── layout: both layers use the exact same cover rect so they stay pixel-aligned ── */
+  /* ── layout: front + back hero share the exact same rect so they stay pixel-aligned
+        (the background is a plain full-screen object-fit:cover image in CSS) ── */
   function layout() {
     const r = hero.getBoundingClientRect();
     W = r.width; H = r.height; DPR = Math.min(window.devicePixelRatio || 1, 2);
@@ -350,8 +347,6 @@
     if (W < H) w = Math.max(W, Math.min(H * ar, W * (W < 600 ? 2.3 : 1.9)));
     const h = w / ar;
     cover = { x: (W - w) / 2, y: h >= H ? (H - h) / 2 : H - h, w, h };
-    Object.assign(bgEl.style, { left: cover.x + 'px', top: cover.y + 'px', width: w + 'px', height: h + 'px' });
-    Object.assign(edge.style, { top: cover.y + 'px', height: (h * .22) + 'px', display: cover.y > 1 ? 'block' : 'none' });
     brushR = Math.max(38, Math.min(W, H) * (W < 820 ? .11 : .075));
     dirty = true;
   }
